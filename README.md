@@ -8,7 +8,7 @@ How to Use
 -------------
 
 Firstly, you should add latest `DEFUK` dependency to your project.
-(IN PROGRESS)
+
 ```$xslt
 <dependency>
     <groupId>io.github.ufukhalis</groupId>
