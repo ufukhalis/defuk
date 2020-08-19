@@ -1,7 +1,7 @@
 DEFUK
 =======
 
-`DEFUK` is a simple periodic job and cache library which only needs Java 8+ version.
+`DEFUK` is a simple periodic job runner and cache library which only needs Java 8+ version.
 
 
 How to Use
@@ -51,7 +51,7 @@ Integer value = DefukCache.fromCache(() -> yourMethod(), "key", adapter);
 
 ```  
 
-For non blocking way, you can do the following
+For non blocking way, you can do the following.
 
 ```$xslt
 public CompletableFuture<Integer> yourMethod() {
@@ -63,7 +63,7 @@ CompletableFuture<Integer> value = DefukCache.fromNonBlockingCache(() -> yourMet
 
 ```
 
-When `Defuk.fromCache` and `Defuk.fromNonBlockingCache` method many times with same parameter 
+When `Defuk.fromCache` and `Defuk.fromNonBlockingCache` methods are called many times with same parameters 
 the caching will be valid. Regarding `Adapter` case, you need to create your adapter cache with your 
 favorite in-memory cache library.
 
