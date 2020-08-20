@@ -7,8 +7,11 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.logging.Logger;
 
 public final class DefukJob<D> {
+
+    private static final Logger LOGGER = Logger.getLogger(DefukJob.class.getName());
 
     private final static String MAP_KEY = "DefukJob";
     private final ScheduledExecutorService scheduler;
@@ -31,8 +34,9 @@ public final class DefukJob<D> {
         Runnable runnable = () -> {
             D result = jobConfig.getOperation().get();
             DEFUK_MAP.put(MAP_KEY, result);
-            System.out.println(Thread.currentThread().getName());
+            LOGGER.log(jobConfig.getLogLevel(), "Periodic operation worked.");
         };
+        LOGGER.log(jobConfig.getLogLevel(), "Periodic operation has been scheduled.");
         scheduler.scheduleAtFixedRate(runnable, jobConfig.getInitialDelay(), jobConfig.getPeriod(), jobConfig.getTimeUnit());
     }
 

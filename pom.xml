@@ -6,7 +6,7 @@
 
     <groupId>io.github.ufukhalis</groupId>
     <artifactId>defuk</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <name>defuk</name>
     <description>Simple Periodic Job Runner and Cache Library</description>
     <url>https://github.com/ufukhalis/defuk</url>

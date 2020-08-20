@@ -3,6 +3,7 @@ package io.github.ufukhalis.defuk.config;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 public class JobConfig<T> {
 
@@ -11,13 +12,15 @@ public class JobConfig<T> {
     private final TimeUnit timeUnit;
     private final Integer threadPoolSize;
     private final Supplier<T> operation;
+    private final Level logLevel;
 
-    public JobConfig(Long initialDelay, Long period, TimeUnit timeUnit, Integer threadPoolSize, Supplier<T> operation) {
+    public JobConfig(Long initialDelay, Long period, TimeUnit timeUnit, Integer threadPoolSize, Supplier<T> operation, Level logLevel) {
         this.initialDelay = initialDelay;
         this.period = period;
         this.timeUnit = timeUnit;
         this.threadPoolSize = threadPoolSize;
         this.operation = operation;
+        this.logLevel = logLevel;
     }
 
     public static class Builder<A> {
@@ -26,6 +29,13 @@ public class JobConfig<T> {
         private TimeUnit timeUnit;
         private Supplier<A> operation;
         private Integer threadPoolSize = 1;
+        private Level logLevel = Level.CONFIG;
+
+        public Builder<A> withLogLevel(Level logLevel) {
+            Objects.requireNonNull(logLevel, "Log level cannot be null!");
+            this.logLevel = logLevel;
+            return this;
+        }
 
         public Builder<A> withOperation(Supplier<A> operation) {
             Objects.requireNonNull(operation, "Operation delay cannot be null!");
@@ -58,7 +68,7 @@ public class JobConfig<T> {
         }
 
         public JobConfig<A> build() {
-            return new JobConfig<>(this.initialDelay, this.period, this.timeUnit, threadPoolSize, operation);
+            return new JobConfig<>(this.initialDelay, this.period, this.timeUnit, threadPoolSize, operation, logLevel);
         }
     }
 
@@ -80,5 +90,9 @@ public class JobConfig<T> {
 
     public Integer getThreadPoolSize() {
         return threadPoolSize;
+    }
+
+    public Level getLogLevel() {
+        return logLevel;
     }
 }
