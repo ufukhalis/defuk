@@ -13,7 +13,7 @@ Firstly, you should add latest `DEFUK` dependency to your project.
 <dependency>
     <groupId>io.github.ufukhalis</groupId>
     <artifactId>defuk</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
