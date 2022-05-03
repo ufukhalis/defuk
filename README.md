@@ -13,7 +13,7 @@ Firstly, you should add latest `DEFUK` dependency to your project.
 <dependency>
     <groupId>io.github.ufukhalis</groupId>
     <artifactId>defuk</artifactId>
-    <version>0.0.3</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -74,22 +74,25 @@ import com.github.benmanes.caffeine.cache.Cache;
 
 import java.util.Optional;
 
-public class CaffeineCacheAdapter<K, V> implements DefukCacheAdapter<K, V> {
+public class CaffeineNonBlockingCacheAdapter<K, V> implements DefukNonBlockingCacheAdapter<K, V> {
 
     private final Cache<K, V> cache;
 
-    public CaffeineCacheAdapter(Cache<K, V> cache) {
+    public CaffeineNonBlockingCacheAdapter(Cache<K, V> cache) {
         this.cache = cache;
     }
 
     @Override
-    public Optional<V> get(K key) {
-        return Optional.ofNullable(cache.getIfPresent(key));
+    public CompletableFuture<Optional<V>> get(K key) {
+        return CompletableFuture.completedFuture(Optional.ofNullable(cache.getIfPresent(key)));
     }
 
     @Override
-    public void put(K key, V value) {
-        cache.put(key, value);
+    public CompletableFuture<V> put(K key, V value) {
+        return CompletableFuture.supplyAsync(() -> {
+            cache.put(key, value);
+            return value;
+        });
     }
 
 }

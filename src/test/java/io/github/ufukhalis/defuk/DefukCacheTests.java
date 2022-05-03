@@ -2,8 +2,8 @@ package io.github.ufukhalis.defuk;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import io.github.ufukhalis.defuk.DefukCache;
 import io.github.ufukhalis.defuk.adapter.CaffeineCacheAdapter;
+import io.github.ufukhalis.defuk.adapter.CaffeineNonBlockingCacheAdapter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +20,8 @@ public class DefukCacheTests {
             .expireAfterWrite(10, TimeUnit.SECONDS)
             .build();
 
-    private CaffeineCacheAdapter<String, Integer> adapter = new CaffeineCacheAdapter<>(cache);
+    private final CaffeineCacheAdapter<String, Integer> adapter = new CaffeineCacheAdapter<>(cache);
+    private final CaffeineNonBlockingCacheAdapter<String, Integer> nonBlockingAdapter = new CaffeineNonBlockingCacheAdapter<>(cache);
 
     @Test
     void whenFromCache_thenShouldCacheValue() {
@@ -35,11 +36,10 @@ public class DefukCacheTests {
         Assertions.assertEquals(cacheResult, cacheValue.get());
     }
 
-
     @Test
-    void whenFromNonBlockingCache_thenShouldCacheValue() throws ExecutionException, InterruptedException {
-        String key = "defuk-nonblocking";
-        Assertions.assertFalse(adapter.get(key).isPresent());
+    void whenFromNonBlockingCacheAdapter_thenShouldCacheValue() throws ExecutionException, InterruptedException {
+        String key = "defuk-nonblocking-adapter";
+        Assertions.assertFalse(nonBlockingAdapter.get(key).get().isPresent());
 
         AtomicInteger cacheHit = new AtomicInteger(0);
         AtomicInteger cacheMissed = new AtomicInteger(0);
@@ -47,7 +47,7 @@ public class DefukCacheTests {
         Integer cacheResult = 0;
         for (int i = 0; i < 2; i++) {
             cacheResult = DefukCache
-                    .fromNonBlockingCache(() -> CompletableFuture.completedFuture(1), key, adapter)
+                    .fromNonBlockingCache(() -> CompletableFuture.completedFuture(1), key, nonBlockingAdapter)
                     .doOnCacheMiss(__ -> cacheMissed.incrementAndGet())
                     .doOnCacheHit(__ -> cacheHit.incrementAndGet())
                     .subscribe()

@@ -1,7 +1,9 @@
 package io.github.ufukhalis.defuk;
 
 import io.github.ufukhalis.defuk.adapter.DefukCacheAdapter;
+import io.github.ufukhalis.defuk.adapter.DefukNonBlockingCacheAdapter;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -11,7 +13,7 @@ public class DefukCache<K, V> {
 
     private final Supplier<CompletableFuture<V>> completableFutureSupplier;
     private final K key;
-    private final DefukCacheAdapter<K, V> adapter;
+    private final DefukNonBlockingCacheAdapter<K, V> nonBlockingAdapter;
 
     private Consumer<? super V> onHit;
     private Consumer<K> onMiss;
@@ -28,15 +30,15 @@ public class DefukCache<K, V> {
         return result;
     }
 
-    public DefukCache(Supplier<CompletableFuture<V>> completableFutureSupplier, K key, DefukCacheAdapter<K, V> adapter) {
+    public DefukCache(Supplier<CompletableFuture<V>> completableFutureSupplier, K key, DefukNonBlockingCacheAdapter<K, V> adapter) {
         this.completableFutureSupplier = completableFutureSupplier;
         this.key = key;
-        this.adapter = adapter;
+        this.nonBlockingAdapter = adapter;
     }
 
     public static <T, M> DefukCache<T, M> fromNonBlockingCache(final Supplier<CompletableFuture<M>> completableFutureSupplier,
                                                                final T key,
-                                                               final DefukCacheAdapter<T, M> adapter) {
+                                                               final DefukNonBlockingCacheAdapter<T, M> adapter) {
         return new DefukCache<>(completableFutureSupplier, key, adapter);
     }
 
@@ -51,18 +53,20 @@ public class DefukCache<K, V> {
     }
 
     public final CompletableFuture<V> subscribe() {
-        Optional<V> maybeResult = adapter.get(key);
+        return Objects.requireNonNull(nonBlockingAdapter).get(key)
+                .thenCompose(cachedValue -> {
+                    if (cachedValue.isPresent()) {
+                        V value = cachedValue.get();
+                        executeConsumerFunction(onHit, value);
+                        return CompletableFuture.completedFuture(value);
+                    }
 
-        return maybeResult
-                .map(__ -> executeConsumerFunction(onHit, __))
-                .map(CompletableFuture::completedFuture)
-                .orElseGet(() -> completableFutureSupplier.get()
-                        .thenApplyAsync(value -> {
-                            executeConsumerFunction(onMiss, key);
-                            adapter.put(key, value);
-                            return value;
-                        })
-                );
+                    return completableFutureSupplier.get()
+                            .thenCompose(value -> {
+                                executeConsumerFunction(onMiss, key);
+                                return nonBlockingAdapter.put(key, value);
+                            });
+                });
     }
 
     private <T> T executeConsumerFunction(Consumer<? super T> consumer, T o) {
